@@ -56,6 +56,7 @@ def parse_reaction_page(page, csvwriter):
         |//div[@align="center"]/font/b/a/sub/text()''')
     reaction_string = ''.join(reaction_pieces)
     reaction_string = reaction_string.replace('&middot', '.')
+    reaction_string = reaction_string.replace('·', '.')
     
     if 'Products' in reaction_string:
         return #skip reactions without listed products
@@ -67,7 +68,11 @@ def parse_reaction_page(page, csvwriter):
     #Split each side into lists of molecules
     reactants = reactants.split('+')
     products = products.split('+')
-
+    
+    #Remove whitespace
+    reactants = [x.strip() for x in reactants]
+    products = [x.strip() for x in products]
+    
     print('%s -> %s'% (str(reactants), str(products)))
 
     data_rows = tree.xpath('//table[contains(*, "Temp")]/tr[position() > 2]')
@@ -139,7 +144,7 @@ def parse_result_page(page, csvwriter):
     
 def scrape():
     #open output CSV file
-    with open('reactions.csv', 'w', newline='') as csvfile:
+    with open('reactions2.csv', 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
         csvwriter.writerow(['Reaction', 'Order', 'Rall', 'R1', 'R2', 'Pall', 'P1', 'P2', 'P3', 'P4', 'Tmin', 'Tmax', 'A', 'n', 'Ea'])
     
