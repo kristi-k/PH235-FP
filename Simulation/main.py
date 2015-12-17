@@ -35,6 +35,17 @@ def read_reaction_data(filename):
 
 def read_user_input():
     global gReactions
+    
+    '''
+    Example inputs:
+    (No 1st order)
+    r1: ClO4
+    r2: Cl
+    
+    (With 1st order)
+    TODO
+    '''    
+    
     #r1 = input('Enter Reactant 1: ').strip()
     r1 = 'ClO4'
     result_set = list( filter(lambda x: x.order == 2 and r1 in x.reactants, gReactions) )
