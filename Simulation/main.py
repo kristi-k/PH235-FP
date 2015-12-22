@@ -4,10 +4,11 @@ import random
 import pylab
 from collections import defaultdict
 
-R = 8.3144598E-3
+R = 8.3144598E-3 #universal gas constant
 
 gReactions= []
 
+#Class representing a reaction
 class Reaction(object):
     def __init__(self, row):
         self.reaction = row['Reaction']
@@ -82,8 +83,13 @@ def read_user_input():
     
     Temp = int( input('Choose a temperature in the range %d - %d: ' % (min(R1.Tmin, R2.Tmin), max(R1.Tmax, R2.Tmax))))
     
-    #Gillespie(R1, R2, Temp)
-    Runge_Kutta(R1, R2, Temp)
+    sim_choice = int( input('Choose a method from the list:\n1. Gillespie\n2. Runge-Kutta '))
+    if sim_choice == 1:
+        Gillespie(R1, R2, Temp)
+    elif sim_choice == 2:
+        Runge_Kutta(R1, R2, Temp)
+    else:
+        print('Invalid choice: ', sim_choice)
     return
     
 def Gillespie(R1, R2, Temp):
@@ -91,7 +97,7 @@ def Gillespie(R1, R2, Temp):
     random.seed()
 
     time_max = 1000 #time of simulation in seconds
-    initial_population = 200
+    initial_population = 100
     
     k1 = R1.rate_constant(Temp)
     k2 = R2.rate_constant(Temp)
@@ -170,7 +176,8 @@ def Gillespie(R1, R2, Temp):
         #print(population)
         pylab.plot(tpoints, population, label=specie)
     pylab.legend(loc='upper right')
-    
+    pylab.xlabel("Time(s)")
+    pylab.ylabel("Species Populations")
     
 def Runge_Kutta(R1, R2, Temp):
     
@@ -239,7 +246,7 @@ def Runge_Kutta(R1, R2, Temp):
             result[specie] = pop_dict[specie] * num
         return result
                     
-    initial_population = 200    
+    initial_population = 100    
     
     #Set initial populations size
     population_sizes = dict()
@@ -300,7 +307,8 @@ def Runge_Kutta(R1, R2, Temp):
         #print(population)
         pylab.plot(tpoints, population, label=specie)
         pylab.legend(loc='upper right')
-    
+    pylab.xlabel("Time(s)")
+    pylab.ylabel("Species Populations")
     
     
 def main():
