@@ -30,7 +30,7 @@ class Reaction(object):
         global R
         return self.A * (temp / 298.0)**self.n * math.exp(-self.Ea/(R*temp))
         
-
+#Load List of reactions and filter by "well-behaved" rate constants
 def read_reaction_data(filename):
     min_rate_constant = 1E-25
     max_rate_constant = 1E3    
@@ -44,7 +44,7 @@ def read_reaction_data(filename):
                 rc = r.rate_constant(r.Tmax)
             except OverflowError as e:
                 continue
-            if rc < min_rate_constant or rc > max_rate_constant:
+            if rc < min_rate_constant or rc > max_rate_constant: #filer rate constants
                 continue
             gReactions.append(r)            
             #print(row['Reaction'], row['Ea'])
@@ -91,6 +91,8 @@ def read_user_input():
     else:
         print('Invalid choice: ', sim_choice)
     return
+
+#Gillespie algorithm implementation
     
 def Gillespie(R1, R2, Temp):
     #Seed random by time
@@ -121,18 +123,18 @@ def Gillespie(R1, R2, Temp):
     tpoints = [0.0]
     while time < time_max:
         rate1 = k1        
-        h1 = 1        
+        h1 = 1 #h1 is the number of reactant molecule combinations for reaction 1        
         for reactant in R1.reactants:
             rate1 *= population_sizes[reactant][-1]
             h1 *= population_sizes[reactant][-1]
             
         rate2 = k2
-        h2 = 1
+        h2 = 1 #h1 is the number of reactant molecule combinations for reaction 2
         for reactant in R2.reactants:
             rate2 *= population_sizes[reactant][-1]
             h2 *= population_sizes[reactant][-1] #h is the total number of reactant molecule combinations
             
-        rate_total = rate1 + rate2
+        rate_total = rate1 + rate2 
         #print(rate1, rate2)
         if rate_total == 0.0:
             break
@@ -144,11 +146,10 @@ def Gillespie(R1, R2, Temp):
         a0 = a1 + a2
         
         rand1 = random.random()
-        tau = (1.0 / a0) * math.log(1.0 / rand1)
+        tau = (1.0 / a0) * math.log(1.0 / rand1) #time step tau
         
-        #TODO
         rand2 = random.random()
-        #print(rand2, prob_R1, prob_R2)
+        #update species populations after a reaction has occured
         if rand2 < prob_R1:
             for specie, population in population_sizes.items():
                 if specie in R1.reactants:
@@ -179,6 +180,8 @@ def Gillespie(R1, R2, Temp):
     pylab.xlabel("Time(s)")
     pylab.ylabel("Species Populations")
     
+#Fourth order Runge-Kutta implementation
+    
 def Runge_Kutta(R1, R2, Temp):
     
     a = 0.0
@@ -194,6 +197,8 @@ def Runge_Kutta(R1, R2, Temp):
         r1 = R1.rate_constant(Temp)
         r2 = R2.rate_constant(Temp)
         
+        #Writing the ordinary differential equations for reactions rates
+        #of the form: dA/dt = -k1A*B + k2*C etc
         pop_diff = defaultdict(float)
         for specie in R1.reactants:
             term = -r1
@@ -221,7 +226,7 @@ def Runge_Kutta(R1, R2, Temp):
         
         return pop_diff
     
-    
+    #Defining functions to perform calculations normally done autmatically by numpy arrays
     def vector_add(pop_dict1, pop_dict2):
         result = dict()
         for specie, population in pop_dict1.items():
@@ -267,6 +272,17 @@ def Runge_Kutta(R1, R2, Temp):
         
     time = a
     tpoints = [time]
+    #The follwing code is essentially what the while loop below implements
+    '''C2Cl4points.append(r[0])
+        Clpoints.append(r[1])
+        C2Cl5points.append(r[2])
+        
+        k1 = h*f(r,t)
+        k2 = h*f(r+0.5*k1,t+0.5*h)
+        k3 = h*f(r+0.5*k2,t+0.5*h)
+        k4 = h*f(r+k3,t+h)
+        r += (k1+2*k2+2*k3+k4)/6
+        '''
     while time < b:
         
         k1 = vector_mul_scalar(f(R1, R2, last_population_sizes), h)
@@ -291,16 +307,7 @@ def Runge_Kutta(R1, R2, Temp):
         time += h
         tpoints.append(time)    
         pass        
-        '''C2Cl4points.append(r[0])
-        Clpoints.append(r[1])
-        C2Cl5points.append(r[2])
-        
-        k1 = h*f(r,t)
-        k2 = h*f(r+0.5*k1,t+0.5*h)
-        k3 = h*f(r+0.5*k2,t+0.5*h)
-        k4 = h*f(r+k3,t+h)
-        r += (k1+2*k2+2*k3+k4)/6
-        '''
+       
     
     for specie, population in population_sizes.items():
         #print(specie, len(tpoints), len(population))
